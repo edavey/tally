@@ -26,13 +26,19 @@ module Tally
       end
       
       # From http://www.evanmiller.org/how-not-to-sort-by-average-rating.html
-      def tally_ci_lower_bound(pos = votes_for.count, n = votes.count, power = 0.10)
-        if n == 0
-          return 0
-        end
+      def tally_ci_lower_bound(pos = votes_for.count, n = votes.count, power = 0.10)       
+        return tally_score - 0.1 if the_only_votes_are_negative?       
+        return 0 if n == 0
+
         z = ::Rubystats::NormalDistribution.new.icdf(1-power/2)
         phat = 1.0*pos/n
         (phat + z*z/(2*n) - z * Math.sqrt((phat*(1-phat)+z*z/(4*n))/n))/(1+z*z/n)
+      end   
+      
+      private
+      
+      def the_only_votes_are_negative?
+        !votes.empty? && votes_for.empty? && !votes.last.for  
       end    
       
     end
